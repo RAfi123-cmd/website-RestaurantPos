@@ -2,9 +2,56 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CategoryRequest;
+use App\Http\Resources\CategoryResource;
+use App\Services\CategoryServices;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    //
+    private $categoryServices;
+
+    public function __construct(CategoryServices $categoryServices){
+        $this->categoryServices = $categoryServices;
+    }
+
+    public function index(){
+        $fields = ['id', 'name'];
+        $categories = $this->categoryServices->getAll($fields);
+        return response()->json(CategoryResource::collection($categories));
+    }
+
+    public function show(int $id){
+        try{
+            $fields = ['id', 'name'];
+            $category = $this->categoryServices->getById($id, $fields);
+            return response()->json(new CategoryResource($category));
+        } catch (ModelNotFoundException $e){
+            return response()->json(['message' => 'Category not found'], 404);
+        }
+    }
+
+    public function store(CategoryRequest $request){
+        $category = $this->categoryServices->create($request->validated());
+        return response()->json(new CategoryResource($category), 201);
+    }
+
+    public function update(CategoryRequest $request, int $id){
+        try{
+            $category = $this->categoryServices->update($id, $request->validated());
+            return response()->json(new CategoryResource($category));
+        } catch (ModelNotFoundException $e){
+            return response()->json(['message' => 'Category not found'], 404);
+        }
+    }
+
+    public function destroy(int $id){
+        try{
+            $this->categoryServices->delete($id);
+            return response()->json(['message' => 'Category deleted successfully']);
+        } catch (ModelNotFoundException $e){
+            return response()->json(['message' => 'Category not found'], 404);
+        }
+    }
 }
