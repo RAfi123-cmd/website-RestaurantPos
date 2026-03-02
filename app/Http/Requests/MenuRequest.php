@@ -11,7 +11,7 @@ class MenuRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,11 @@ class MenuRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:255|unique:menus,name,' . $this->route('menu'),
+            'price' => 'required|numeric|min:0',
+            'description' => 'required|string',
+            'photo' => 'ruquired|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'category_id' => 'required|exists:categories,id',
         ];
     }
 }
